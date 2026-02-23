@@ -61,7 +61,7 @@ export function DistributionRow({ destination }: DistributionRowProps) {
       {/* Quantity Badge */}
       <div className="flex-shrink-0 min-w-[4rem] text-center">
         <div className="inline-flex items-center justify-center h-12 px-3 rounded-lg bg-cyan-100 text-cyan-700 font-semibold">
-          {destination.quantity.toLocaleString()}x
+          {destination.quantity.toLocaleString("de-DE")}x
         </div>
       </div>
 

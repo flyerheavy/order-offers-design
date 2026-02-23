@@ -38,6 +38,8 @@ interface OrderDistribution {
   total: string;
   status: "Offen" | "Abgebrochen" | "In Bearbeitung" | "Versandt" | "Geliefert";
   progressStep: number;
+  paymentMethod: string;
+  paymentStatus: "Bezahlt" | "Offen" | "In Prüfung";
   products: Product[];
   billingAddress: {
     name: string;
@@ -51,7 +53,6 @@ interface OrderDistribution {
     total: string;
   };
   uploadStatus?: "pending" | "uploaded" | "none";
-  paymentMethod?: string;
   invoiceUrl?: string;
 }
 
@@ -136,7 +137,12 @@ export function OrderCardDistribution({ order }: OrderCardDistributionProps) {
         <div className="flex items-center space-x-6">
           <div className="text-right">
             <p className="text-sm text-gray-500">Gesamtsumme</p>
-            <p className="text-lg font-semibold text-gray-900">{order.total}</p>
+            <p className="text-lg font-semibold text-gray-900">
+              {order.pricing.net}{" "}
+              <span className="text-[10px] font-normal text-gray-500 uppercase">
+                Netto
+              </span>
+            </p>
           </div>
           <motion.div
             animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -308,6 +314,30 @@ export function OrderCardDistribution({ order }: OrderCardDistributionProps) {
                                       Veredelung
                                     </span>
                                     <span className="text-gray-900">Keine</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-500 block text-xs mb-1">
+                                      Zahlungsart
+                                    </span>
+                                    <span className="text-gray-900">
+                                      {order.paymentMethod}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-500 block text-xs mb-1">
+                                      Zahlungsstatus
+                                    </span>
+                                    <span
+                                      className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                        order.paymentStatus === "Bezahlt"
+                                          ? "bg-green-100 text-green-700"
+                                          : order.paymentStatus === "In Prüfung"
+                                            ? "bg-amber-100 text-amber-700"
+                                            : "bg-red-100 text-red-700"
+                                      }`}
+                                    >
+                                      {order.paymentStatus}
+                                    </span>
                                   </div>
                                   {product.variations?.map((variation, idx) => (
                                     <div key={idx}>

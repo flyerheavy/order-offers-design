@@ -36,6 +36,8 @@ interface Order {
   date: string;
   total: string;
   globalStatus: string;
+  paymentMethod: string;
+  paymentStatus: "Bezahlt" | "Offen" | "In Prüfung";
   shipments: Shipment[];
   billingAddress: {
     name: string;
@@ -118,7 +120,12 @@ export function OrderCardWithShipments({ order }: OrderCardWithShipmentsProps) {
         <div className="flex items-center space-x-6">
           <div className="text-right">
             <p className="text-sm text-gray-500">Gesamtsumme</p>
-            <p className="text-lg font-semibold text-gray-900">{order.total}</p>
+            <p className="text-lg font-semibold text-gray-900">
+              {order.pricing.net}{" "}
+              <span className="text-[10px] font-normal text-gray-500 uppercase">
+                Netto
+              </span>
+            </p>
           </div>
           <motion.div
             animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -144,7 +151,12 @@ export function OrderCardWithShipments({ order }: OrderCardWithShipmentsProps) {
               <div className="space-y-4">
                 <h3 className="font-semibold text-gray-900">Lieferungen</h3>
                 {order.shipments.map((shipment, index) => (
-                  <ShipmentCard key={index} shipment={shipment} />
+                  <ShipmentCard
+                    key={index}
+                    shipment={shipment}
+                    paymentMethod={order.paymentMethod}
+                    paymentStatus={order.paymentStatus}
+                  />
                 ))}
               </div>
 

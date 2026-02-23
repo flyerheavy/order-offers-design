@@ -39,9 +39,15 @@ interface Shipment {
 
 interface ShipmentCardProps {
   shipment: Shipment;
+  paymentMethod: string;
+  paymentStatus: string;
 }
 
-export function ShipmentCard({ shipment }: ShipmentCardProps) {
+export function ShipmentCard({
+  shipment,
+  paymentMethod,
+  paymentStatus,
+}: ShipmentCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showProductDetails, setShowProductDetails] = useState<{
     [key: number]: boolean;
@@ -180,7 +186,7 @@ export function ShipmentCard({ shipment }: ShipmentCardProps) {
                                 </span>
                               </p>
                               <p className="text-xs text-gray-500">
-                                {product.quantity} Stück
+                                {product.quantity.toLocaleString("de-DE")} Stück
                               </p>
                             </div>
                           </div>
@@ -200,7 +206,7 @@ export function ShipmentCard({ shipment }: ShipmentCardProps) {
                                 Auflage
                               </span>
                               <span className="text-gray-900">
-                                {product.quantity}
+                                {product.quantity.toLocaleString("de-DE")}
                               </span>
                             </div>
                             <div>
@@ -271,6 +277,30 @@ export function ShipmentCard({ shipment }: ShipmentCardProps) {
                                   Veredelung
                                 </span>
                                 <span className="text-gray-900">Keine</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-500 block text-xs mb-1">
+                                  Zahlungsart
+                                </span>
+                                <span className="text-gray-900">
+                                  {paymentMethod}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-gray-500 block text-xs mb-1">
+                                  Zahlungsstatus
+                                </span>
+                                <span
+                                  className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                    paymentStatus === "Bezahlt"
+                                      ? "bg-green-100 text-green-700"
+                                      : paymentStatus === "In Prüfung"
+                                        ? "bg-amber-100 text-amber-700"
+                                        : "bg-red-100 text-red-700"
+                                  }`}
+                                >
+                                  {paymentStatus}
+                                </span>
                               </div>
                               {product.variations?.map((variation, idx) => (
                                 <div key={idx}>
