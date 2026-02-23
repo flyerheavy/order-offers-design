@@ -248,7 +248,7 @@ export function OfferCard({ offer, onAccept, onDecline }: OfferCardProps) {
                             >
                               <div className="ms-20 mt-4 pt-4 border-t border-gray-200 space-y-4">
                                 {/* Product Specifications */}
-                                <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                                <div className="grid grid-cols-4 gap-x-8 gap-y-3 text-sm">
                                   <div>
                                     <span className="text-gray-500 block text-xs mb-1">
                                       Auflage:

@@ -1,28 +1,26 @@
 import { useState } from "react";
-import { ChevronDown, RotateCw, AlertCircle, X, GitBranch } from "lucide-react";
+import {
+  ChevronDown,
+  RotateCw,
+  AlertCircle,
+  X,
+  GitBranch,
+  FileText,
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { StatusBadge } from "./StatusBadge";
 import { OrderProgressTracker } from "./OrderProgressTracker";
 import { FileUploadZone } from "./FileUploadZone";
-import { DistributionRow } from "./DistributionRow";
-
-interface DistributionDestination {
-  quantity: number;
-  address: {
-    name: string;
-    street: string;
-    city: string;
-    country?: string;
-  };
-  status: "Versandt" | "Wartet auf Abholung" | "Zugestellt" | "In Vorbereitung";
-  trackingNumber?: string;
-  carrier?: string;
-}
+import {
+  DistributionRow,
+  type DistributionDestination,
+} from "./DistributionRow";
 
 interface Product {
   name: string;
   totalQuantity: number;
-  price: string;
+  netPrice: string;
+  grossPrice: string;
   format: string;
   paper: string;
   deliveryDate: string;
@@ -54,6 +52,7 @@ interface OrderDistribution {
   };
   uploadStatus?: "pending" | "uploaded" | "none";
   paymentMethod?: string;
+  invoiceUrl?: string;
 }
 
 interface OrderCardDistributionProps {
@@ -73,6 +72,32 @@ export function OrderCardDistribution({ order }: OrderCardDistributionProps) {
     }));
   };
 
+  const calculateOrderStatus = (): any => {
+    const allItems = order.products.flatMap((p) => p.distributionList);
+    const allCancelled = allItems.every((item) => item.status === "Storniert");
+
+    if (allCancelled && allItems.length > 0) {
+      return "Abgebrochen";
+    }
+
+    if (order.uploadStatus !== "uploaded") {
+      return "Wartet auf Daten";
+    }
+
+    const allFinishedOrCancelled = allItems.every(
+      (item) =>
+        (item.status as string) === "Versandt" ||
+        (item.status as string) === "Geliefert" ||
+        (item.status as string) === "Storniert",
+    );
+
+    if (allFinishedOrCancelled && allItems.length > 0) {
+      return "Versandt";
+    }
+
+    return "Eingegangen";
+  };
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
       {/* Global Order Header */}
@@ -89,8 +114,23 @@ export function OrderCardDistribution({ order }: OrderCardDistributionProps) {
             <p className="text-sm text-gray-500">Bestelldatum</p>
             <p className="text-gray-900">{order.date}</p>
           </div>
-          <div className="flex-1">
-            <StatusBadge status={order.status} />
+
+          <div className="flex-1 flex items-start space-x-4">
+            {order.invoiceUrl && (
+              <a
+                href={order.invoiceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center space-x-1.5 text-sm text-cyan-600 hover:text-cyan-700 transition-colors font-medium"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Rechnung</span>
+              </a>
+            )}
+          </div>
+          <div className="flex-1 flex items-center space-x-4">
+            <StatusBadge status={calculateOrderStatus()} />
           </div>
         </div>
         <div className="flex items-center space-x-6">
@@ -119,7 +159,7 @@ export function OrderCardDistribution({ order }: OrderCardDistributionProps) {
           >
             <div className="px-6 pb-6 space-y-6 border-t border-gray-100">
               {/* Product Details (Multiple Products) */}
-              <div className="space-y-4 mt-6">
+              <div className="space-y-4">
                 <h3 className="font-semibold text-gray-900">
                   Produktdetails ({order.products.length} Produkte)
                 </h3>
@@ -145,7 +185,7 @@ export function OrderCardDistribution({ order }: OrderCardDistributionProps) {
                             )}
                           </div>
                           <div className="flex-1">
-                            <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-start justify-between mb-2 gap-5">
                               <div>
                                 <h4 className="font-medium text-gray-900">
                                   {product.name}
@@ -163,13 +203,30 @@ export function OrderCardDistribution({ order }: OrderCardDistributionProps) {
                                   </span>
                                 </div>
                               </div>
-                              <div className="text-right">
-                                <p className="font-semibold text-gray-900">
-                                  {product.price}
+                              <div className="text-right grow">
+                                <p className="text-sm font-semibold text-gray-500 leading-tight">
+                                  {product.netPrice}{" "}
+                                  <span className="text-[10px] font-normal text-gray-500 uppercase">
+                                    Netto
+                                  </span>
+                                </p>
+                                <p className="text-sm font-semibold text-gray-900 leading-tight">
+                                  {product.grossPrice}{" "}
+                                  <span className="text-[10px] font-normal text-gray-500 uppercase">
+                                    Brutto
+                                  </span>
                                 </p>
                                 <p className="text-sm text-gray-500">
                                   {product.totalQuantity} Stück (Gesamt)
                                 </p>
+                                {/* Global Progress Tracker */}
+                                {order.status !== "Abgebrochen" && (
+                                  <div className="pt-2">
+                                    <OrderProgressTracker
+                                      currentStep={order.progressStep}
+                                    />
+                                  </div>
+                                )}
                               </div>
                             </div>
 
@@ -213,7 +270,7 @@ export function OrderCardDistribution({ order }: OrderCardDistributionProps) {
                             >
                               <div className="ms-20 mt-4 pt-4 border-t border-gray-200 space-y-4">
                                 {/* Product Specifications */}
-                                <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                                <div className="grid grid-cols-4 gap-x-4 gap-y-4 text-sm">
                                   <div>
                                     <span className="text-gray-500 block text-xs mb-1">
                                       Auflage:
@@ -286,12 +343,6 @@ export function OrderCardDistribution({ order }: OrderCardDistributionProps) {
                                     Versandaufteilung ({totalDestinations}{" "}
                                     Adresse{totalDestinations > 1 ? "n" : ""})
                                   </h4>
-                                  {/* Global Progress Tracker */}
-                                  {order.status !== "Abgebrochen" && (
-                                    <OrderProgressTracker
-                                      currentStep={order.progressStep}
-                                    />
-                                  )}
                                   <div className="space-y-2">
                                     {product.distributionList.map(
                                       (destination, destIndex) => (

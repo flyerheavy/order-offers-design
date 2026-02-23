@@ -1,14 +1,16 @@
-import { useState } from 'react';
-import { ChevronDown, Package, Truck, MapPin } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { StatusBadge } from './StatusBadge';
-import { FileUploadZone } from './FileUploadZone';
-import { OrderProgressTracker } from './OrderProgressTracker';
+import { useState } from "react";
+import { ChevronDown, Package, Truck, MapPin } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { StatusBadge } from "./StatusBadge";
+import { FileUploadZone } from "./FileUploadZone";
+import { OrderProgressTracker } from "./OrderProgressTracker";
 
 interface ShipmentProduct {
   name: string;
   quantity: number;
   price: string;
+  netPrice: string;
+  grossPrice: string;
   format: string;
   paper: string;
   deliveryDate: string;
@@ -22,7 +24,7 @@ interface ShipmentProduct {
 interface Shipment {
   shipmentNumber: number;
   totalShipments: number;
-  status: 'Offen' | 'Abgebrochen' | 'In Bearbeitung' | 'Versandt' | 'Geliefert';
+  status: "Offen" | "Abgebrochen" | "In Bearbeitung" | "Versandt" | "Geliefert";
   progressStep: number;
   products: ShipmentProduct[];
   deliveryAddress: {
@@ -30,7 +32,7 @@ interface Shipment {
     street: string;
     city: string;
   };
-  uploadStatus?: 'pending' | 'uploaded' | 'none';
+  uploadStatus?: "pending" | "uploaded" | "none";
   trackingNumber?: string;
   deliveryService?: string;
 }
@@ -41,27 +43,29 @@ interface ShipmentCardProps {
 
 export function ShipmentCard({ shipment }: ShipmentCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showProductDetails, setShowProductDetails] = useState<{ [key: number]: boolean }>({});
+  const [showProductDetails, setShowProductDetails] = useState<{
+    [key: number]: boolean;
+  }>({});
 
   const getStatusColor = () => {
     switch (shipment.status) {
-      case 'Geliefert':
-        return 'bg-green-50 border-green-200';
-      case 'Versandt':
-        return 'bg-blue-50 border-blue-200';
-      case 'In Bearbeitung':
-        return 'bg-amber-50 border-amber-200';
-      case 'Offen':
-        return 'bg-cyan-50 border-cyan-200';
+      case "Geliefert":
+        return "bg-green-50 border-green-200";
+      case "Versandt":
+        return "bg-blue-50 border-blue-200";
+      case "In Bearbeitung":
+        return "bg-amber-50 border-amber-200";
+      case "Offen":
+        return "bg-cyan-50 border-cyan-200";
       default:
-        return 'bg-gray-50 border-gray-200';
+        return "bg-gray-50 border-gray-200";
     }
   };
 
   const toggleProductDetails = (index: number) => {
-    setShowProductDetails(prev => ({
+    setShowProductDetails((prev) => ({
       ...prev,
-      [index]: !prev[index]
+      [index]: !prev[index],
     }));
   };
 
@@ -99,14 +103,14 @@ export function ShipmentCard({ shipment }: ShipmentCardProps) {
         {isExpanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
+            animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >
             <div className="px-4 pb-4 space-y-4 bg-white">
               {/* Progress Tracker for this Shipment */}
-              {shipment.status !== 'Abgebrochen' && (
+              {shipment.status !== "Abgebrochen" && (
                 <div className="pt-2">
                   <OrderProgressTracker currentStep={shipment.progressStep} />
                 </div>
@@ -116,18 +120,31 @@ export function ShipmentCard({ shipment }: ShipmentCardProps) {
               <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                 <MapPin className="w-5 h-5 text-gray-600 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Lieferadresse</p>
-                  <p className="text-sm text-gray-600">{shipment.deliveryAddress.name}</p>
-                  <p className="text-sm text-gray-600">{shipment.deliveryAddress.street}</p>
-                  <p className="text-sm text-gray-600">{shipment.deliveryAddress.city}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    Lieferadresse
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {shipment.deliveryAddress.name}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {shipment.deliveryAddress.street}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {shipment.deliveryAddress.city}
+                  </p>
                 </div>
               </div>
 
               {/* Products in this Shipment */}
               <div className="space-y-3">
-                <h4 className="font-medium text-gray-900">Artikel in dieser Lieferung</h4>
+                <h4 className="font-medium text-gray-900">
+                  Artikel in dieser Lieferung
+                </h4>
                 {shipment.products.map((product, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg border border-gray-200">
+                  <div
+                    key={index}
+                    className="bg-gray-50 rounded-lg border border-gray-200"
+                  >
                     <div className="p-3">
                       <div className="flex space-x-3">
                         <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
@@ -142,28 +159,57 @@ export function ShipmentCard({ shipment }: ShipmentCardProps) {
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-2">
                             <div>
-                              <h5 className="font-medium text-gray-900">{product.name}</h5>
-                              <p className="text-xs text-gray-500">{product.deliveryDate}</p>
+                              <h5 className="font-medium text-gray-900">
+                                {product.name}
+                              </h5>
+                              <p className="text-xs text-gray-500">
+                                {product.deliveryDate}
+                              </p>
                             </div>
                             <div className="text-right">
-                              <p className="font-semibold text-gray-900">{product.price}</p>
-                              <p className="text-xs text-gray-500">{product.quantity} Stück</p>
+                              <p className="text-sm font-semibold text-gray-900 leading-tight">
+                                {product.netPrice}{" "}
+                                <span className="text-[10px] font-normal text-gray-500 uppercase">
+                                  Netto
+                                </span>
+                              </p>
+                              <p className="text-sm font-semibold text-gray-900 leading-tight">
+                                {product.grossPrice}{" "}
+                                <span className="text-[10px] font-normal text-gray-500 uppercase">
+                                  Brutto
+                                </span>
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {product.quantity} Stück
+                              </p>
                             </div>
                           </div>
 
                           {/* Quick Info */}
                           <div className="grid grid-cols-3 gap-2 text-xs mb-2">
                             <div>
-                              <span className="text-gray-500 block">Lieferung</span>
-                              <span className="text-gray-900">{product.paper}</span>
+                              <span className="text-gray-500 block">
+                                Lieferung
+                              </span>
+                              <span className="text-gray-900">
+                                {product.paper}
+                              </span>
                             </div>
                             <div>
-                              <span className="text-gray-500 block">Auflage</span>
-                              <span className="text-gray-900">{product.quantity}</span>
+                              <span className="text-gray-500 block">
+                                Auflage
+                              </span>
+                              <span className="text-gray-900">
+                                {product.quantity}
+                              </span>
                             </div>
                             <div>
-                              <span className="text-gray-500 block">Format</span>
-                              <span className="text-gray-900">{product.format}</span>
+                              <span className="text-gray-500 block">
+                                Format
+                              </span>
+                              <span className="text-gray-900">
+                                {product.format}
+                              </span>
                             </div>
                           </div>
 
@@ -174,7 +220,9 @@ export function ShipmentCard({ shipment }: ShipmentCardProps) {
                           >
                             <span>Details</span>
                             <motion.div
-                              animate={{ rotate: showProductDetails[index] ? 180 : 0 }}
+                              animate={{
+                                rotate: showProductDetails[index] ? 180 : 0,
+                              }}
                               transition={{ duration: 0.2 }}
                             >
                               <ChevronDown className="w-4 h-4" />
@@ -188,32 +236,50 @@ export function ShipmentCard({ shipment }: ShipmentCardProps) {
                         {showProductDetails[index] && (
                           <motion.div
                             initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
+                            animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.2 }}
                             className="overflow-hidden"
                           >
-                            <div className="mt-3 pt-3 border-t border-gray-200 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                            <div className="mt-3 pt-3 border-t border-gray-200 grid grid-cols-4 gap-x-4 gap-y-4 text-sm">
                               <div>
-                                <span className="text-gray-500 block text-xs mb-1">Format</span>
-                                <span className="text-gray-900">{product.format}</span>
+                                <span className="text-gray-500 block text-xs mb-1">
+                                  Format
+                                </span>
+                                <span className="text-gray-900">
+                                  {product.format}
+                                </span>
                               </div>
                               <div>
-                                <span className="text-gray-500 block text-xs mb-1">Papierart</span>
-                                <span className="text-gray-900">{product.paper}</span>
+                                <span className="text-gray-500 block text-xs mb-1">
+                                  Papierart
+                                </span>
+                                <span className="text-gray-900">
+                                  {product.paper}
+                                </span>
                               </div>
                               <div>
-                                <span className="text-gray-500 block text-xs mb-1">Liefertermin</span>
-                                <span className="text-gray-900">{product.deliveryDate}</span>
+                                <span className="text-gray-500 block text-xs mb-1">
+                                  Liefertermin
+                                </span>
+                                <span className="text-gray-900">
+                                  {product.deliveryDate}
+                                </span>
                               </div>
                               <div>
-                                <span className="text-gray-500 block text-xs mb-1">Veredelung</span>
+                                <span className="text-gray-500 block text-xs mb-1">
+                                  Veredelung
+                                </span>
                                 <span className="text-gray-900">Keine</span>
                               </div>
                               {product.variations?.map((variation, idx) => (
                                 <div key={idx}>
-                                  <span className="text-gray-500 block text-xs mb-1">{variation.label}</span>
-                                  <span className="text-gray-900">{variation.value}</span>
+                                  <span className="text-gray-500 block text-xs mb-1">
+                                    {variation.label}
+                                  </span>
+                                  <span className="text-gray-900">
+                                    {variation.value}
+                                  </span>
                                 </div>
                               ))}
                             </div>
@@ -226,12 +292,15 @@ export function ShipmentCard({ shipment }: ShipmentCardProps) {
               </div>
 
               {/* Upload Zone (if needed for this shipment) */}
-              {shipment.uploadStatus && shipment.uploadStatus !== 'uploaded' && (
-                <div className="space-y-2">
-                  <h4 className="font-medium text-gray-900">Druckdaten für diese Lieferung hochladen</h4>
-                  <FileUploadZone uploadStatus={shipment.uploadStatus} />
-                </div>
-              )}
+              {shipment.uploadStatus &&
+                shipment.uploadStatus !== "uploaded" && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-gray-900">
+                      Druckdaten für diese Lieferung hochladen
+                    </h4>
+                    <FileUploadZone uploadStatus={shipment.uploadStatus} />
+                  </div>
+                )}
 
               {/* Tracking Info */}
               {shipment.trackingNumber && (
@@ -239,9 +308,12 @@ export function ShipmentCard({ shipment }: ShipmentCardProps) {
                   <div className="flex items-center space-x-3">
                     <Truck className="w-5 h-5 text-blue-600" />
                     <div>
-                      <p className="text-sm font-medium text-gray-900">Sendungsverfolgung</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        Sendungsverfolgung
+                      </p>
                       <p className="text-sm text-gray-600">
-                        {shipment.deliveryService || 'DHL'}: {shipment.trackingNumber}
+                        {shipment.deliveryService || "DHL"}:{" "}
+                        {shipment.trackingNumber}
                       </p>
                     </div>
                   </div>
@@ -251,7 +323,7 @@ export function ShipmentCard({ shipment }: ShipmentCardProps) {
                 </div>
               )}
 
-              {shipment.status === 'Offen' && (
+              {shipment.status === "Offen" && (
                 <div className="flex items-center justify-end space-x-2">
                   <button className="px-4 py-2 rounded-lg border border-red-300 text-red-700 hover:bg-red-50 transition-colors text-sm">
                     Diese Lieferung stornieren

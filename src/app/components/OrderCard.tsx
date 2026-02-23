@@ -5,6 +5,7 @@ import {
   AlertCircle,
   X,
   ChevronRight,
+  FileText,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { StatusBadge } from "./StatusBadge";
@@ -22,6 +23,8 @@ interface Order {
     deliveryDate: string;
     quantity: number;
     price: string;
+    netPrice: string;
+    grossPrice: string;
     format: string;
     paper: string;
     thumbnail?: string;
@@ -48,6 +51,7 @@ interface Order {
     total: string;
   };
   uploadStatus?: "pending" | "uploaded" | "none";
+  invoiceUrl?: string;
 }
 
 interface OrderCardProps {
@@ -86,7 +90,18 @@ function ProductCard({
                 </p>
               </div>
               <div className="text-right">
-                <p className="font-semibold text-gray-900">{product.price}</p>
+                <p className="text-sm font-semibold text-gray-900 leading-tight">
+                  {product.netPrice}{" "}
+                  <span className="text-[10px] font-normal text-gray-500 uppercase">
+                    Netto
+                  </span>
+                </p>
+                <p className="text-sm font-semibold text-gray-900 leading-tight">
+                  {product.grossPrice}{" "}
+                  <span className="text-[10px] font-normal text-gray-500 uppercase">
+                    Brutto
+                  </span>
+                </p>
               </div>
             </div>
 
@@ -132,7 +147,7 @@ function ProductCard({
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+              <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-4 gap-x-4 gap-y-4 text-sm">
                 <div>
                   <span className="text-gray-500 block text-xs mb-1">
                     Format
@@ -178,6 +193,26 @@ export function OrderCard({ order }: OrderCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showDeliveryDetails, setShowDeliveryDetails] = useState(false);
 
+  const calculateOrderStatus = (): any => {
+    if (order.status === "Abgebrochen") {
+      return "Abgebrochen";
+    }
+
+    if (order.uploadStatus !== "uploaded") {
+      return "Wartet auf Daten";
+    }
+
+    const allProductsFinished = order.products.every(
+      (p) => order.status === "Versandt" || order.status === "Geliefert",
+    );
+
+    if (allProductsFinished && order.products.length > 0) {
+      return order.status;
+    }
+
+    return "Eingegangen";
+  };
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
       {/* Collapsed Header */}
@@ -194,8 +229,22 @@ export function OrderCard({ order }: OrderCardProps) {
             <p className="text-sm text-gray-500">Bestelldatum</p>
             <p className="text-gray-900">{order.date}</p>
           </div>
-          <div className="flex-1">
-            <StatusBadge status={order.status} />
+          <div className="flex-1 flex items-center space-x-4">
+            {order.invoiceUrl && (
+              <a
+                href={order.invoiceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center space-x-1.5 text-sm text-cyan-600 hover:text-cyan-700 transition-colors font-medium"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Rechnung</span>
+              </a>
+            )}
+          </div>
+          <div className="flex-1 flex items-center space-x-4">
+            <StatusBadge status={calculateOrderStatus()} />
           </div>
         </div>
         <div className="flex items-center space-x-6">

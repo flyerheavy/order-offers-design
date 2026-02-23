@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { ChevronDown, RotateCw, AlertCircle, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ShipmentCard } from './ShipmentCard';
+import { useState } from "react";
+import { ChevronDown, RotateCw, AlertCircle, X, FileText } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { ShipmentCard } from "./ShipmentCard";
 
 interface Shipment {
   shipmentNumber: number;
   totalShipments: number;
-  status: 'Offen' | 'Abgebrochen' | 'In Bearbeitung' | 'Versandt' | 'Geliefert';
+  status: "Offen" | "Abgebrochen" | "In Bearbeitung" | "Versandt" | "Geliefert";
   progressStep: number;
   products: Array<{
     name: string;
@@ -26,7 +26,7 @@ interface Shipment {
     street: string;
     city: string;
   };
-  uploadStatus?: 'pending' | 'uploaded' | 'none';
+  uploadStatus?: "pending" | "uploaded" | "none";
   trackingNumber?: string;
   deliveryService?: string;
 }
@@ -48,6 +48,7 @@ interface Order {
     shipping: string;
     total: string;
   };
+  invoiceUrl?: string;
 }
 
 interface OrderCardWithShipmentsProps {
@@ -57,14 +58,16 @@ interface OrderCardWithShipmentsProps {
 export function OrderCardWithShipments({ order }: OrderCardWithShipmentsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [cancelTarget, setCancelTarget] = useState<'order' | 'shipment'>('order');
+  const [cancelTarget, setCancelTarget] = useState<"order" | "shipment">(
+    "order",
+  );
 
   const hasAnyActiveShipment = order.shipments.some(
-    s => s.status === 'Offen' || s.status === 'In Bearbeitung'
+    (s) => s.status === "Offen" || s.status === "In Bearbeitung",
   );
 
   const hasAnyDeliveredShipment = order.shipments.some(
-    s => s.status === 'Geliefert'
+    (s) => s.status === "Geliefert",
   );
 
   const handleCancelClick = () => {
@@ -73,7 +76,7 @@ export function OrderCardWithShipments({ order }: OrderCardWithShipmentsProps) {
       setShowCancelModal(true);
     } else if (hasAnyActiveShipment) {
       // All active - cancel entire order
-      setCancelTarget('order');
+      setCancelTarget("order");
       setShowCancelModal(true);
     }
   };
@@ -94,7 +97,19 @@ export function OrderCardWithShipments({ order }: OrderCardWithShipmentsProps) {
             <p className="text-sm text-gray-500">Bestelldatum</p>
             <p className="text-gray-900">{order.date}</p>
           </div>
-          <div className="flex-1">
+          {order.invoiceUrl && (
+            <a
+              href={order.invoiceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center space-x-1.5 text-sm text-cyan-600 hover:text-cyan-700 transition-colors font-medium"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Rechnung</span>
+            </a>
+          )}
+          <div className="flex-1 flex items-center space-x-4">
             <span className="px-4 py-1.5 rounded-full text-sm font-medium inline-block bg-blue-100 text-blue-800">
               {order.globalStatus}
             </span>
@@ -119,7 +134,7 @@ export function OrderCardWithShipments({ order }: OrderCardWithShipmentsProps) {
         {isExpanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
+            animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
@@ -135,19 +150,31 @@ export function OrderCardWithShipments({ order }: OrderCardWithShipmentsProps) {
 
               {/* Global Billing Address */}
               <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="font-medium text-gray-900 mb-2">Rechnungsadresse</h4>
-                <p className="text-sm text-gray-600">{order.billingAddress.name}</p>
-                <p className="text-sm text-gray-600">{order.billingAddress.street}</p>
-                <p className="text-sm text-gray-600">{order.billingAddress.city}</p>
+                <h4 className="font-medium text-gray-900 mb-2">
+                  Rechnungsadresse
+                </h4>
+                <p className="text-sm text-gray-600">
+                  {order.billingAddress.name}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {order.billingAddress.street}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {order.billingAddress.city}
+                </p>
               </div>
 
               {/* Bestellübersicht (Order Summary) */}
               <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <h3 className="font-semibold text-gray-900 mb-4">Bestellübersicht</h3>
-                
+                <h3 className="font-semibold text-gray-900 mb-4">
+                  Bestellübersicht
+                </h3>
+
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Zwischensumme (netto):</span>
+                    <span className="text-gray-600">
+                      Zwischensumme (netto):
+                    </span>
                     <span className="text-gray-900">{order.pricing.net}</span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -156,12 +183,16 @@ export function OrderCardWithShipments({ order }: OrderCardWithShipmentsProps) {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Versandkosten:</span>
-                    <span className="text-gray-900">{order.pricing.shipping}</span>
+                    <span className="text-gray-900">
+                      {order.pricing.shipping}
+                    </span>
                   </div>
-                  
+
                   <div className="pt-3 border-t-2 border-gray-300">
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-900">Gesamtsumme (brutto):</span>
+                      <span className="font-semibold text-gray-900">
+                        Gesamtsumme (brutto):
+                      </span>
                       <span className="font-semibold text-lg text-gray-900">
                         {order.pricing.total}
                       </span>
@@ -199,33 +230,40 @@ export function OrderCardWithShipments({ order }: OrderCardWithShipmentsProps) {
       {showCancelModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Stornierung wählen</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Stornierung wählen
+            </h3>
             <p className="text-gray-600 mb-6">
-              Einige Lieferungen wurden bereits versandt. Was möchten Sie stornieren?
+              Einige Lieferungen wurden bereits versandt. Was möchten Sie
+              stornieren?
             </p>
             <div className="space-y-3 mb-6">
               <button
-                onClick={() => setCancelTarget('order')}
+                onClick={() => setCancelTarget("order")}
                 className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
-                  cancelTarget === 'order'
-                    ? 'border-cyan-500 bg-cyan-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                  cancelTarget === "order"
+                    ? "border-cyan-500 bg-cyan-50"
+                    : "border-gray-200 hover:border-gray-300"
                 }`}
               >
-                <p className="font-medium text-gray-900">Gesamte Bestellung stornieren</p>
+                <p className="font-medium text-gray-900">
+                  Gesamte Bestellung stornieren
+                </p>
                 <p className="text-sm text-gray-500">
                   Alle noch offenen Lieferungen werden storniert
                 </p>
               </button>
               <button
-                onClick={() => setCancelTarget('shipment')}
+                onClick={() => setCancelTarget("shipment")}
                 className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
-                  cancelTarget === 'shipment'
-                    ? 'border-cyan-500 bg-cyan-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                  cancelTarget === "shipment"
+                    ? "border-cyan-500 bg-cyan-50"
+                    : "border-gray-200 hover:border-gray-300"
                 }`}
               >
-                <p className="font-medium text-gray-900">Einzelne Lieferung stornieren</p>
+                <p className="font-medium text-gray-900">
+                  Einzelne Lieferung stornieren
+                </p>
                 <p className="text-sm text-gray-500">
                   Wählen Sie eine spezifische Lieferung zum Stornieren
                 </p>
